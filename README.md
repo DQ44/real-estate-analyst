@@ -7,9 +7,9 @@
   Add your open source license, GitHub uses MIT license.
 -->
 
-# GitHub Pages
+# Real estate analist
 
-_Create a site or blog from your GitHub repositories with GitHub Pages._
+_Search for attractive houses or flats arroundyou, accroding a lot of criteria (travel's time arround you, price and population range, unemployement rate, number of students) _
 
 </header>
 

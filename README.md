@@ -1,59 +1,148 @@
-<header>
+# 🏡 Real Estate Analyzer
 
-<!--
-  <<< Author notes: Course header >>>
-  Include a 1280×640 image, course title in sentence case, and a concise description in emphasis.
-  In your repository settings: enable template repository, add your 1280×640 social image, auto delete head branches.
-  Add your open source license, GitHub uses MIT license.
--->
-
-# Real estate analist
-
-_Search for attractive houses or flats arroundyou, accroding a lot of criteria (travel's time arround you, price and population range, unemployement rate, number of students) _
-
-</header>
-
-<!--
-  <<< Author notes: Step 2 >>>
-  Start this step by acknowledging the previous step.
-  Define terms and link to docs.github.com.
-  Historic note: previous version checked for empty pull request, changed to the correct theme `minima`.
--->
-
-## Step 2: Configure your site
-
-_You turned on GitHub Pages! :tada:_
-
-We'll work in a branch, `my-pages`, that I created for you to get this site looking great. :sparkle:
-
-Jekyll uses a file titled `_config.yml` to store settings for your site, your theme, and reusable content like your site title and GitHub handle. You can check out the `_config.yml` file on the **Code** tab of your repository.
-
-We need to use a blog-ready theme. For this activity, we will use a theme named "minima".
-
-### :keyboard: Activity: Configure your site
-
-1. Browse to the `_config.yml` file in the `my-pages` branch.
-1. In the upper right corner, open the file editor.
-1. Add a `theme:` set to **minima** so it shows in the `_config.yml` file as below:
-   ```yml
-   theme: minima
-   ```
-1. (optional) You can modify the other configuration variables such as `title:`, `author:`, and `description:` to further customize your site.
-1. Commit your changes.
-1. (optional) Create a pull request to view all the changes you'll make throughout this course. Click the **Pull Requests** tab, click **New pull request**, set `base: main` and `compare:my-pages`.
-1. Wait about 20 seconds then refresh this page (the one you're following instructions from). [GitHub Actions](https://docs.github.com/en/actions) will automatically update to the next step.
-
-<footer>
-
-<!--
-  <<< Author notes: Footer >>>
-  Add a link to get support, GitHub status page, code of conduct, license link.
--->
+**Real Estate Analyzer** est un outil d’analyse quantitative pour l’immobilier, conçu pour faciliter les décisions d’investissement ou d’achat. Il permet de visualiser des zones accessibles autour d’une ville, d’analyser les données socio-économiques et immobilières, et de filtrer des annonces selon des critères précis.
 
 ---
 
-Get help: [Post in our discussion board](https://github.com/orgs/skills/discussions/categories/github-pages) &bull; [Review the GitHub status page](https://www.githubstatus.com/)
+## 🚀 Fonctionnalités
 
-&copy; 2023 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
+### 1. **Zonage autour d'une ville**
+- Génération de zones isochrones basées sur une distance (en km) ou un temps de trajet (en minutes).
+- Affichage des villes accessibles dans la zone définie.
 
-</footer>
+### 2. **Analyse des villes selon des critères personnalisés**
+- **Démographie :**
+  - Population minimale et maximale.
+  - Variation de la population.
+- **Économie :**
+  - Taux de chômage (actuel et historique).
+  - Identification des bassins industriels.
+- **Éducation :**
+  - Nombre d'étudiants.
+  - Présence de grandes écoles.
+- **Tourisme :**
+  - Nombre annuel de touristes et de nuitées.
+- **Immobilier :**
+  - Prix moyen des loyers et des achats immobiliers.
+
+### 3. **Compilation des annonces immobilières**
+- Agrégation et tri d’annonces d'achat ou de location pour les villes sélectionnées.
+- Affichage des annonces sous forme de carte interactive ou de liste.
+
+---
+
+## 🛠️ Technologies utilisées
+
+### **Langages et Frameworks**
+- **Python** : Backend principal, manipulation des données, et appels API.
+- **C++** : Calculs avancés pour les distances, les isochrones, et le filtrage rapide.
+- **JavaScript (React.js)** : Frontend pour l'interface utilisateur.
+  
+### **APIs et Données**
+- [INSEE API](https://api.insee.fr/) : Données démographiques et économiques.
+- [Google Maps API](https://developers.google.com/maps/documentation) ou [OpenStreetMap](https://www.openstreetmap.org/) : Calcul des distances et des isochrones.
+- Plateformes immobilières (SeLoger, LeBonCoin, etc.) : Pour les annonces (via scraping ou APIs).
+
+---
+
+## 📂 Structure du projet
+
+```
+/real-estate-analyzer
+├── backend/
+│   ├── app.py             # API principale
+│   ├── models/            # Modèles de données
+│   ├── services/          # Logique métier
+├── cpp/
+│   ├── main.cpp           # Point d'entrée C++
+│   ├── utils.cpp          # Fonctions utilitaires
+│   ├── utils.h            # Headers pour utils.cpp
+│   ├── Makefile           # Script de compilation C++
+├── frontend/
+│   ├── src/               # Code React.js
+│   ├── public/            # Ressources statiques
+├── data/
+│   └── datasets/          # Données statiques utilisées
+└── README.md              # Documentation
+```
+
+---
+
+## 🔧 Installation et utilisation
+
+### Prérequis
+- Python 3.9 ou plus
+- C++17 ou plus
+- Node.js et npm
+- API keys pour Google Maps ou OpenStreetMap
+
+### Étapes d'installation
+
+#### 1. Clonez le dépôt
+```bash
+git clone https://github.com/votre_nom_utilisateur/real-estate-analyzer.git
+cd real-estate-analyzer
+```
+
+#### 2. Backend Python
+- Installez les dépendances :
+  ```bash
+  pip install -r requirements.txt
+  ```
+- Lancez le serveur backend :
+  ```bash
+  python backend/app.py
+  ```
+
+#### 3. Module C++
+- Rendez-vous dans le dossier `cpp/` :
+  ```bash
+  cd cpp
+  ```
+- Compilez les fichiers C++ :
+  ```bash
+  make
+  ```
+- Testez le binaire généré :
+  ```bash
+  ./app
+  ```
+
+#### 4. Frontend
+- Rendez-vous dans le dossier `frontend/` :
+  ```bash
+  cd frontend
+  ```
+- Installez les dépendances :
+  ```bash
+  npm install
+  ```
+- Lancez l'interface utilisateur :
+  ```bash
+  npm start
+  ```
+
+---
+
+## ✨ Utilisation
+1. Accédez à l'interface utilisateur via votre navigateur à l'adresse `http://localhost:3000`.
+2. Sélectionnez une ville et définissez les critères d’analyse.
+3. Explorez les zones et les données affichées.
+
+---
+
+## 📈 Contribuer
+Les contributions sont les bienvenues ! Voici comment vous pouvez contribuer :
+1. **Forkez** ce dépôt.
+2. Créez une **branche** pour vos modifications (`git checkout -b feature/nom-de-la-fonctionnalité`).
+3. Soumettez une **pull request**.
+
+---
+
+## 📜 Licence
+Ce projet est sous licence [MIT](LICENSE).
+
+---
+
+## 🙌 Remerciements
+Merci à toutes les ressources open source et APIs qui rendent ce projet possible ! 😊

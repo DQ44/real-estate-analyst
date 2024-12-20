@@ -6,13 +6,25 @@
     <title>Carte Interactive de France</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { height: 100vh; }
+        #map { height: 90vh; } /* Hauteur de la carte */
+        #controls { height: 10vh; display: flex; align-items: center; justify-content: center; }
+        select { padding: 5px; font-size: 1rem; }
     </style>
 </head>
 <body>
     <div id="map"></div>
+    <div id="controls">
+        <label for="zonage">Choisissez un zonage : </label>
+        <select id="zonage">
+            <option value="regions.geojson">Régions</option>
+            <option value="departements.geojson">Départements</option>
+            <option value="communes.geojson">Communes</option>
+            <option value="arrondissements.geojson">Arrondissements</option>
+        </select>
+    </div>
+
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="script.js"></script> <!-- Chemin relatif au fichier script.js -->
+    <script src="script.js"></script>
     <script>
         // Initialiser la carte
         var map = L.map('map').setView([46.603354, 1.888334], 6); // Coordonnées centrales de la France
@@ -23,14 +35,38 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Charger les données GeoJSON
-        fetch('regions.geojson') // Chemin relatif au fichier regions.geojson
-            .then(response => response.json())
-            .then(data => {
-                // Ajouter les données GeoJSON à la carte
-                L.geoJSON(data).addTo(map);
-            })
-            .catch(error => console.error('Erreur lors du chargement des données GeoJSON:', error));
+        // Variable pour stocker la couche GeoJSON actuelle
+        let currentLayer = null;
+
+        // Fonction pour charger un fichier GeoJSON et l'ajouter à la carte
+        function loadGeoJSON(file) {
+            if (currentLayer) {
+                map.removeLayer(currentLayer); // Supprimer la couche actuelle si elle existe
+            }
+            fetch(file)
+                .then(response => response.json())
+                .then(data => {
+                    currentLayer = L.geoJSON(data, {
+                        onEachFeature: function (feature, layer) {
+                            if (feature.properties) {
+                                let popupContent = Object.keys(feature.properties)
+                                    .map(key => `<strong>${key}:</strong> ${feature.properties[key]}`)
+                                    .join('<br>');
+                                layer.bindPopup(popupContent); // Ajouter un popup avec les propriétés
+                            }
+                        }
+                    }).addTo(map);
+                })
+                .catch(error => console.error('Erreur lors du chargement du fichier GeoJSON:', error));
+        }
+
+        // Charger les régions par défaut
+        loadGeoJSON('regions.geojson');
+
+        // Ajouter un écouteur pour changer le zonage en fonction du sélecteur
+        document.getElementById('zonage').addEventListener('change', function () {
+            loadGeoJSON(this.value);
+        });
     </script>
 </body>
 </html>

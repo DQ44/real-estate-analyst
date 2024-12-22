@@ -9,21 +9,25 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // Fonction pour charger et styliser les données GeoJSON
 function loadGeoJSON(url, style, layerName) {
     var layer = new L.GeoJSON.AJAX(url, {
-        style: style
+        style: style,
+        onEachFeature: function (feature, layer) {
+            if (feature.properties && feature.properties.nom) {
+                layer.bindPopup(feature.properties.nom); // Affiche un popup avec le nom
+            }
+        }
     });
+
+    layer.on('data:loaded', function () {
+        console.log(layerName + " chargé avec succès.");
+    });
+
+    layer.on('error', function (err) {
+        console.error("Erreur lors du chargement de " + layerName, err);
+    });
+
     layer.addTo(map);
-    layer.on('click', function (e) {
-        alert(layerName + ': ' + e.layer.feature.properties.nom); // Affiche le nom sur clic
-    });
     return layer;
 }
-
-// Style par défaut
-var defaultStyle = {
-    color: "#3388ff",
-    weight: 1,
-    opacity: 0.65
-};
 
 // Charger les données GeoJSON
 loadGeoJSON("https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson", defaultStyle, "Région");

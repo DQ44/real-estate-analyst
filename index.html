@@ -24,7 +24,6 @@
     </div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="script.js"></script>
     <script>
         // Initialiser la carte
         var map = L.map('map').setView([46.603354, 1.888334], 6); // Coordonnées centrales de la France
@@ -38,12 +37,16 @@
         // Variable pour stocker la couche GeoJSON actuelle
         let currentLayer = null;
 
-        // Fonction pour charger un fichier GeoJSON et l'ajouter à la carte
-        function loadGeoJSON(file) {
+        // Fonction pour charger un fichier GeoJSON distant et l'ajouter à la carte
+        function loadGeoJSON(type) {
+            const baseUrl = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/'
+            const fileUrl = baseUrl + type;
+
             if (currentLayer) {
                 map.removeLayer(currentLayer); // Supprimer la couche actuelle si elle existe
             }
-            fetch(file)
+
+            fetch(fileUrl)
                 .then(response => response.json())
                 .then(data => {
                     currentLayer = L.geoJSON(data, {

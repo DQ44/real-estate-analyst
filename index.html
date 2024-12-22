@@ -1,21 +1,18 @@
-function loadGeoJSON(url, style, layerName) {
-    var layer = new L.GeoJSON.AJAX(url, {
-        style: style,
-        onEachFeature: function (feature, layer) {
-            if (feature.properties && feature.properties.nom) {
-                layer.bindPopup(feature.properties.nom); // Affiche un popup avec le nom
-            }
-        }
-    });
-
-    layer.on('data:loaded', function () {
-        console.log(layerName + " chargé avec succès.");
-    });
-
-    layer.on('error', function (err) {
-        console.error("Erreur lors du chargement de " + layerName, err);
-    });
-
-    layer.addTo(map);
-    return layer;
-}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte Interactive de France</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

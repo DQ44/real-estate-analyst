@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         #map { height: 90vh; } /* Hauteur de la carte */
-        #controls { height: 10vh; display: flex; align-items: center; justify-content: center; }
-        select { padding: 5px; font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -54,24 +52,35 @@
                 .catch(error => console.error('Erreur lors du chargement du fichier GeoJSON:', error));
         }
 
-        // Charger les départements par défaut
-        loadGeoJSON('departements.geojson');
+        // Variables pour suivre le niveau actuel
+        let currentZoomLevel = map.getZoom();
+        let currentGeoJSON = '';
 
-        // Gérer l'affichage en fonction du zoom
-        map.on('zoomend', function () {
+        // Fonction pour déterminer et charger le niveau de détail approprié
+        function updateLayer() {
             let zoomLevel = map.getZoom();
+            let newGeoJSON = '';
 
             if (zoomLevel > 10) {
-                // Affiche les communes si le zoom est suffisant
-                loadGeoJSON('communes.geojson');
+                newGeoJSON = 'communes.geojson';
             } else if (zoomLevel > 7) {
-                // Affiche les départements si le zoom est moyen
-                loadGeoJSON('departements.geojson');
+                newGeoJSON = 'departements.geojson';
             } else {
-                // Affiche les régions pour les zooms faibles
-                loadGeoJSON('regions.geojson');
+                newGeoJSON = 'regions.geojson';
             }
-        });
+
+            // Charger une nouvelle couche uniquement si elle change
+            if (newGeoJSON !== currentGeoJSON) {
+                currentGeoJSON = newGeoJSON;
+                loadGeoJSON(currentGeoJSON);
+            }
+        }
+
+        // Charger les régions par défaut
+        loadGeoJSON('regions.geojson');
+
+        // Surveiller les changements de zoom et mettre à jour les couches
+        map.on('zoomend', updateLayer);
 
     </script>
 </body>

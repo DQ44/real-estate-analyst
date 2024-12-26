@@ -6,169 +6,99 @@
     <title>Carte Interactive de France</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { height: 90vh; } /* Hauteur de la carte */
+        #map { height: 90vh; }
+        #header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
+    <div id="header">
+        <select id="mode">
+            <option value="fromHome">Depuis chez moi</option>
+            <option value="regionDept">Dans ma région ou département</option>
+        </select>
+        <div id="home-options" style="display: none;">
+            Adresse : <input type="text" id="address" placeholder="Entrez votre adresse">
+            Temps de trajet (min) : <input type="number" id="travelTime" min="1">
+            <button onclick="searchFromHome()">Rechercher</button>
+        </div>
+        <div id="region-options">
+            Région : <select id="region"></select>
+            Département : <select id="department"><option value="">-Sélectionner-</option></select>
+            <button onclick="searchRegionDept()">Rechercher</button>
+        </div>
+    </div>
+
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         // Initialiser la carte
-        var map = L.map('map').setView([46.603354, 1.888334], 6); // Coordonnées centrales de la France
-
-        // Ajouter une couche OpenStreetMap
+        var map = L.map('map').setView([46.603354, 1.888334], 6);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Variables pour stocker la couche GeoJSON actuelle
         let currentLayer = null;
+        let selectedCommunes = [];
 
-        // Fonction pour charger un fichier GeoJSON distant et l'ajouter à la carte
-        function loadGeoJSON(type) {
-            const baseUrl = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/'
-            const fileUrl = baseUrl + type;
-
-            if (currentLayer) {
-                map.removeLayer(currentLayer); // Supprimer la couche actuelle si elle existe
-            }
-
-            fetch(fileUrl)
-                .then(response => response.json())
+        function loadGeoJSON(url) {
+            if (currentLayer) map.removeLayer(currentLayer);
+            fetch(url)
+                .then(res => res.json())
                 .then(data => {
                     currentLayer = L.geoJSON(data, {
                         onEachFeature: function (feature, layer) {
-                            if (feature.properties) {
-                                let popupContent = Object.keys(feature.properties)
-                                    .map(key => `<strong>${key}:</strong> ${feature.properties[key]}`)
-                                    .join('<br>');
-                                layer.bindPopup(popupContent); // Ajouter un popup avec les propriétés
-                            }
+                            layer.on('click', function () {
+                                layer.setStyle({ color: 'blue' });
+                                selectedCommunes.push(feature.properties);
+                            });
                         }
                     }).addTo(map);
-                })
-                .catch(error => console.error('Erreur lors du chargement du fichier GeoJSON:', error));
+                });
         }
 
-        // Variables pour suivre le niveau actuel
-        let currentZoomLevel = map.getZoom();
-        let currentGeoJSON = '';
+        function searchFromHome() {
+            let address = document.getElementById('address').value;
+            let travelTime = document.getElementById('travelTime').value;
 
-        // Fonction pour déterminer et charger le niveau de détail approprié
-        function updateLayer() {
-            let zoomLevel = map.getZoom();
-            let newGeoJSON = '';
-
-            if (zoomLevel > 10) {
-                newGeoJSON = 'communes.geojson';
-            } else if (zoomLevel > 7) {
-                newGeoJSON = 'departements.geojson';
-            } else {
-                newGeoJSON = 'regions.geojson';
-            }
-
-            // Charger une nouvelle couche uniquement si elle change
-            if (newGeoJSON !== currentGeoJSON) {
-                currentGeoJSON = newGeoJSON;
-                loadGeoJSON(currentGeoJSON);
-            }
-        }
-
-        // Charger les départements par défaut
-        loadGeoJSON('departements.geojson');
-
-        // Surveiller les changements de zoom et mettre à jour les couches
-        map.on('zoomend', updateLayer);
-
-    </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carte Interactive de France</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        #map { height: 90vh; } /* Hauteur de la carte */
-    </style>
-</head>
-<body>
-    <div id="map"></div>
-
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
-        // Initialiser la carte
-        var map = L.map('map').setView([46.603354, 1.888334], 6); // Coordonnées centrales de la France
-
-        // Ajouter une couche OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 18,
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
-
-        // Variables pour stocker la couche GeoJSON actuelle
-        let currentLayer = null;
-
-        // Fonction pour charger un fichier GeoJSON distant et l'ajouter à la carte
-        function loadGeoJSON(type) {
-            const baseUrl = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/'
-            const fileUrl = baseUrl + type;
-
-            if (currentLayer) {
-                map.removeLayer(currentLayer); // Supprimer la couche actuelle si elle existe
-            }
-
-            fetch(fileUrl)
-                .then(response => response.json())
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${address}`)
+                .then(res => res.json())
                 .then(data => {
-                    currentLayer = L.geoJSON(data, {
-                        onEachFeature: function (feature, layer) {
-                            if (feature.properties) {
-                                let popupContent = Object.keys(feature.properties)
-                                    .map(key => `<strong>${key}:</strong> ${feature.properties[key]}`)
-                                    .join('<br>');
-                                layer.bindPopup(popupContent); // Ajouter un popup avec les propriétés
-                            }
-                        }
-                    }).addTo(map);
-                })
-                .catch(error => console.error('Erreur lors du chargement du fichier GeoJSON:', error));
+                    if (data && data[0]) {
+                        let lat = data[0].lat;
+                        let lon = data[0].lon;
+                        map.setView([lat, lon], 12);
+                        // TODO: Intégrer API pour isochrones et charger les communes correspondantes
+                    }
+                });
         }
 
-        // Variables pour suivre le niveau actuel
-        let currentZoomLevel = map.getZoom();
-        let currentGeoJSON = '';
+        function searchRegionDept() {
+            let region = document.getElementById('region').value;
+            let department = document.getElementById('department').value;
 
-        // Fonction pour déterminer et charger le niveau de détail approprié
-        function updateLayer() {
-            let zoomLevel = map.getZoom();
-            let newGeoJSON = '';
-
-            if (zoomLevel > 10) {
-                newGeoJSON = 'communes.geojson';
-            } else if (zoomLevel > 7) {
-                newGeoJSON = 'departements.geojson';
-            } else {
-                newGeoJSON = 'regions.geojson';
-            }
-
-            // Charger une nouvelle couche uniquement si elle change
-            if (newGeoJSON !== currentGeoJSON) {
-                currentGeoJSON = newGeoJSON;
-                loadGeoJSON(currentGeoJSON);
+            if (department) {
+                loadGeoJSON(`https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson`);
+            } else if (region) {
+                loadGeoJSON(`https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson`);
             }
         }
 
-        // Charger les départements par défaut
-        loadGeoJSON('departements.geojson');
-
-        // Surveiller les changements de zoom et mettre à jour les couches
-        map.on('zoomend', updateLayer);
-
+        document.getElementById('mode').addEventListener('change', function () {
+            let mode = this.value;
+            document.getElementById('home-options').style.display = mode === 'fromHome' ? 'block' : 'none';
+            document.getElementById('region-options').style.display = mode === 'regionDept' ? 'block' : 'none';
+        });
     </script>
 </body>
 </html>

@@ -57,14 +57,19 @@
                 .then(res => res.json())
                 .then(data => {
                     currentLayer = L.geoJSON(data, {
+                        style: {
+                            color: 'blue',
+                            weight: 1
+                        },
                         onEachFeature: function (feature, layer) {
                             layer.on('click', function () {
-                                layer.setStyle({ color: 'blue' });
+                                layer.setStyle({ color: 'red' });
                                 selectedCommunes.push(feature.properties);
                             });
                         }
                     }).addTo(map);
-                });
+                })
+                .catch(error => console.error('Erreur chargement GeoJSON:', error));
         }
 
         function searchFromHome() {
@@ -78,7 +83,11 @@
                         let lat = data[0].lat;
                         let lon = data[0].lon;
                         map.setView([lat, lon], 12);
-                        // TODO: Intégrer API pour isochrones et charger les communes correspondantes
+
+                        L.marker([lat, lon]).addTo(map).bindPopup('Point de départ').openPopup();
+
+                        // Simuler une recherche de communes dans l'isochrone
+                        loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/communes.geojson');
                     }
                 });
         }
@@ -88,9 +97,9 @@
             let department = document.getElementById('department').value;
 
             if (department) {
-                loadGeoJSON(`https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson`);
+                loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson');
             } else if (region) {
-                loadGeoJSON(`https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson`);
+                loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson');
             }
         }
 
@@ -99,6 +108,9 @@
             document.getElementById('home-options').style.display = mode === 'fromHome' ? 'block' : 'none';
             document.getElementById('region-options').style.display = mode === 'regionDept' ? 'block' : 'none';
         });
+
+        loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson');
+
     </script>
 </body>
 </html>

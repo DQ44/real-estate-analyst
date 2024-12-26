@@ -13,15 +13,6 @@
 </head>
 <body>
     <div id="map"></div>
-    <div id="controls">
-        <label for="zonage">Choisissez un zonage : </label>
-        <select id="zonage">
-            <option value="regions.geojson">Régions</option>
-            <option value="departements.geojson">Départements</option>
-            <option value="communes.geojson">Communes</option>
-            <option value="arrondissements.geojson">Arrondissements</option>
-        </select>
-    </div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
@@ -34,7 +25,7 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Variable pour stocker la couche GeoJSON actuelle
+        // Variables pour stocker la couche GeoJSON actuelle
         let currentLayer = null;
 
         // Fonction pour charger un fichier GeoJSON distant et l'ajouter à la carte
@@ -63,13 +54,25 @@
                 .catch(error => console.error('Erreur lors du chargement du fichier GeoJSON:', error));
         }
 
-        // Charger les régions par défaut
-        loadGeoJSON('regions.geojson');
+        // Charger les départements par défaut
+        loadGeoJSON('departements.geojson');
 
-        // Ajouter un écouteur pour changer le zonage en fonction du sélecteur
-        document.getElementById('zonage').addEventListener('change', function () {
-            loadGeoJSON(this.value);
+        // Gérer l'affichage en fonction du zoom
+        map.on('zoomend', function () {
+            let zoomLevel = map.getZoom();
+
+            if (zoomLevel > 10) {
+                // Affiche les communes si le zoom est suffisant
+                loadGeoJSON('communes.geojson');
+            } else if (zoomLevel > 7) {
+                // Affiche les départements si le zoom est moyen
+                loadGeoJSON('departements.geojson');
+            } else {
+                // Affiche les régions pour les zooms faibles
+                loadGeoJSON('regions.geojson');
+            }
         });
+
     </script>
 </body>
 </html>

@@ -92,14 +92,14 @@
             let region = document.getElementById('region').value;
             let department = document.getElementById('department').value;
 
-            // Récupérer les départements
+            // Charger les départements GeoJSON
             const response = await fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson');
             const data = await response.json();
 
-            // Filtrer les départements de la région sélectionnée
-            let regionDepartments = data.features.filter(feature => feature.properties.code.startsWith(region));
+            // Filtrer les départements appartenant à la région sélectionnée
+            let regionDepartments = data.features.filter(feature => feature.properties.codeRegion === region);
 
-            // Appliquer les styles de couleurs
+            // Appliquer les styles (orange pour le département sélectionné, vert pour les autres dans la région)
             await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson', feature => {
                 if (feature.properties.code === department) {
                     return { color: 'orange', weight: 2 };

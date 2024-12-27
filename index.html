@@ -49,30 +49,24 @@
         }).addTo(map);
 
         let currentLayer = null;
-        let selectedCommunes = [];
 
-        async function loadGeoJSON(url) {
+        async function loadGeoJSON(url, highlightFilter = null) {
             if (currentLayer) map.removeLayer(currentLayer);
             const response = await fetch(url);
             const data = await response.json();
             currentLayer = L.geoJSON(data, {
-                style: {
-                    color: 'blue',
-                    weight: 1
-                },
-                onEachFeature: function (feature, layer) {
-                    layer.on('click', function () {
-                        layer.setStyle({ color: 'red' });
-                        selectedCommunes.push(feature.properties);
-                    });
+                style: function(feature) {
+                    if (highlightFilter && highlightFilter(feature)) {
+                        return { color: 'orange', weight: 2 };
+                    }
+                    return { color: 'blue', weight: 1 };
                 }
             }).addTo(map);
+            map.fitBounds(currentLayer.getBounds());
         }
 
         async function searchFromHome() {
             let address = document.getElementById('address').value;
-            let travelTime = document.getElementById('travelTime').value;
-
             const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${address}`);
             const data = await response.json();
 
@@ -82,12 +76,10 @@
                 map.setView([lat, lon], 12);
                 L.marker([lat, lon]).addTo(map).bindPopup('Point de départ').openPopup();
 
-                // Exemple d'isochrone fictif - Remplacer avec une vraie API
-                let circle = L.circle([lat, lon], {
-                    radius: travelTime * 1000, // Rayon fictif en mètres
-                    color: 'blue',
-                    fillOpacity: 0.1
-                }).addTo(map);
+                // Afficher toutes les communes et surligner la correspondante
+                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/communes.geojson', feature => {
+                    return feature.properties.nom.toLowerCase().includes(address.toLowerCase());
+                });
             }
         }
 
@@ -97,7 +89,7 @@
             let regionSelect = document.getElementById('region');
             regions.forEach(region => {
                 let option = document.createElement('option');
-                option.value = region.code;
+                option.value = region.nom;
                 option.textContent = region.nom;
                 regionSelect.appendChild(option);
             });
@@ -110,7 +102,7 @@
             departmentSelect.innerHTML = '<option value="">-Sélectionner-</option>';
             departments.forEach(dept => {
                 let option = document.createElement('option');
-                option.value = dept.code;
+                option.value = dept.nom;
                 option.textContent = dept.nom;
                 departmentSelect.appendChild(option);
             });
@@ -121,9 +113,9 @@
             let department = document.getElementById('department').value;
 
             if (department) {
-                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson');
+                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson', feature => feature.properties.nom === department);
             } else if (region) {
-                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson');
+                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson', feature => feature.properties.nom === region);
             }
         }
 
@@ -135,7 +127,7 @@
 
         document.getElementById('region').addEventListener('change', function () {
             let regionCode = this.value;
-            if (regionCode) loadDepartments(regionCode);
+            loadDepartments(regionCode);
         });
 
         loadRegions();

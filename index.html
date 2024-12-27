@@ -50,14 +50,37 @@
 
         let currentLayer = null;
 
-        async function loadGeoJSON(url, styleFunction = null) {
+        async function loadGeoJSON(url, highlightFilter = null) {
             if (currentLayer) map.removeLayer(currentLayer);
             const response = await fetch(url);
             const data = await response.json();
             currentLayer = L.geoJSON(data, {
-                style: styleFunction || function () { return { color: 'blue', weight: 1 }; }
+                style: function(feature) {
+                    if (highlightFilter && highlightFilter(feature)) {
+                        return { color: 'orange', weight: 2 };
+                    }
+                    return { color: 'blue', weight: 1 };
+                }
             }).addTo(map);
             map.fitBounds(currentLayer.getBounds());
+        }
+
+        async function searchFromHome() {
+            let address = document.getElementById('address').value;
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${address}`);
+            const data = await response.json();
+
+            if (data && data[0]) {
+                let lat = data[0].lat;
+                let lon = data[0].lon;
+                map.setView([lat, lon], 12);
+                L.marker([lat, lon]).addTo(map).bindPopup('Point de départ').openPopup();
+
+                // Afficher toutes les communes et surligner la correspondante
+                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/communes.geojson', feature => {
+                    return feature.properties.nom.toLowerCase() === data[0].display_name.split(',')[0].toLowerCase();
+                });
+            }
         }
 
         async function loadRegions() {
@@ -65,6 +88,7 @@
             const regions = await response.json();
             let regionSelect = document.getElementById('region');
             regions.forEach(region => {
+                // Exclure les régions d'outre-mer
                 if (!['01', '02', '03', '04', '06'].includes(region.code)) {
                     let option = document.createElement('option');
                     option.value = region.code;
@@ -92,22 +116,11 @@
             let region = document.getElementById('region').value;
             let department = document.getElementById('department').value;
 
-            // Charger les départements GeoJSON
-            const response = await fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson');
-            const data = await response.json();
-
-            // Filtrer les départements appartenant à la région sélectionnée
-            let regionDepartments = data.features.filter(feature => feature.properties.codeRegion === region);
-
-            // Appliquer les styles (orange pour le département sélectionné, vert pour les autres dans la région)
-            await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson', feature => {
-                if (feature.properties.code === department) {
-                    return { color: 'orange', weight: 2 };
-                } else if (regionDepartments.some(dept => dept.properties.code === feature.properties.code)) {
-                    return { color: 'green', weight: 1 };
-                }
-                return { color: 'blue', weight: 1 };
-            });
+            if (department) {
+                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson', feature => feature.properties.code === department);
+            } else if (region) {
+                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson', feature => feature.properties.code === region);
+            }
         }
 
         document.getElementById('mode').addEventListener('change', function () {

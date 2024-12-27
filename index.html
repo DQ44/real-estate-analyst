@@ -88,14 +88,18 @@
             const regions = await response.json();
             let regionSelect = document.getElementById('region');
             regions.forEach(region => {
-                let option = document.createElement('option');
-                option.value = region.code;
-                option.textContent = region.nom;
-                regionSelect.appendChild(option);
+                // Exclure les régions d'outre-mer
+                if (!['01', '02', '03', '04', '06'].includes(region.code)) {
+                    let option = document.createElement('option');
+                    option.value = region.code;
+                    option.textContent = region.nom;
+                    regionSelect.appendChild(option);
+                }
             });
         }
 
         async function loadDepartments(regionCode) {
+            if (!regionCode) return;
             const response = await fetch(`https://geo.api.gouv.fr/regions/${regionCode}/departements`);
             const departments = await response.json();
             let departmentSelect = document.getElementById('department');

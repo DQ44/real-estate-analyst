@@ -50,17 +50,12 @@
 
         let currentLayer = null;
 
-        async function loadGeoJSON(url, highlightFilter = null) {
+        async function loadGeoJSON(url, styleFunction = null) {
             if (currentLayer) map.removeLayer(currentLayer);
             const response = await fetch(url);
             const data = await response.json();
             currentLayer = L.geoJSON(data, {
-                style: function(feature) {
-                    if (highlightFilter && highlightFilter(feature)) {
-                        return { color: 'orange', weight: 2 };
-                    }
-                    return { color: 'blue', weight: 1 };
-                }
+                style: styleFunction || function () { return { color: 'blue', weight: 1 }; }
             }).addTo(map);
             map.fitBounds(currentLayer.getBounds());
         }
@@ -76,9 +71,8 @@
                 map.setView([lat, lon], 12);
                 L.marker([lat, lon]).addTo(map).bindPopup('Point de départ').openPopup();
 
-                // Afficher toutes les communes et surligner la correspondante
                 await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/communes.geojson', feature => {
-                    return feature.properties.nom.toLowerCase() === data[0].display_name.split(',')[0].toLowerCase();
+                    return { color: feature.properties.nom.toLowerCase() === data[0].display_name.split(',')[0].toLowerCase() ? 'orange' : 'blue', weight: 1 };
                 });
             }
         }
@@ -88,7 +82,6 @@
             const regions = await response.json();
             let regionSelect = document.getElementById('region');
             regions.forEach(region => {
-                // Exclure les régions d'outre-mer
                 if (!['01', '02', '03', '04', '06'].includes(region.code)) {
                     let option = document.createElement('option');
                     option.value = region.code;
@@ -116,10 +109,15 @@
             let region = document.getElementById('region').value;
             let department = document.getElementById('department').value;
 
-            if (department) {
-                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson', feature => feature.properties.code === department);
-            } else if (region) {
-                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson', feature => feature.properties.code === region);
+            if (region) {
+                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson', feature => {
+                    if (feature.properties.code === department) {
+                        return { color: 'orange', weight: 2 };
+                    } else if (feature.properties.code.startsWith(region)) {
+                        return { color: 'green', weight: 1 };
+                    }
+                    return { color: 'blue', weight: 1 };
+                });
             }
         }
 

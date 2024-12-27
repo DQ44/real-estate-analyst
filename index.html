@@ -78,7 +78,7 @@
 
                 // Afficher toutes les communes et surligner la correspondante
                 await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/communes.geojson', feature => {
-                    return feature.properties.nom.toLowerCase().includes(address.toLowerCase());
+                    return feature.properties.nom.toLowerCase() === data[0].display_name.split(',')[0].toLowerCase();
                 });
             }
         }
@@ -89,7 +89,7 @@
             let regionSelect = document.getElementById('region');
             regions.forEach(region => {
                 let option = document.createElement('option');
-                option.value = region.nom;
+                option.value = region.code;
                 option.textContent = region.nom;
                 regionSelect.appendChild(option);
             });
@@ -102,7 +102,7 @@
             departmentSelect.innerHTML = '<option value="">-Sélectionner-</option>';
             departments.forEach(dept => {
                 let option = document.createElement('option');
-                option.value = dept.nom;
+                option.value = dept.code;
                 option.textContent = dept.nom;
                 departmentSelect.appendChild(option);
             });
@@ -113,9 +113,9 @@
             let department = document.getElementById('department').value;
 
             if (department) {
-                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson', feature => feature.properties.nom === department);
+                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson', feature => feature.properties.code === department);
             } else if (region) {
-                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson', feature => feature.properties.nom === region);
+                await loadGeoJSON('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson', feature => feature.properties.code === region);
             }
         }
 
